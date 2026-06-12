@@ -1,4 +1,4 @@
-class Enemy extends Phaser.GameObjects.Sprite {
+class Enemy extends Phaser.Physics.Arcade.Sprite {
     
     constructor(scene, x, y, img, frame, type, speed) {
         super(scene, x, y, img, frame);
@@ -9,6 +9,7 @@ class Enemy extends Phaser.GameObjects.Sprite {
         this.scene = scene;
 
         scene.add.existing(this);
+        scene.physics.add.existing(this);
  
         return this;
     }

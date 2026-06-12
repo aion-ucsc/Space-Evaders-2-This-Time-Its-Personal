@@ -2,13 +2,22 @@ class SpaceEvaders extends Phaser.Scene {
     constructor() {
         super("spaceEvaders")
 
-        this.obj = {sprite: {}, text: {}};
+        this.obj = {sprite: {}, text: {}, vfx: {}, sfx: {}, fx: {}};
 
         this.playerSpeed = 250;
         this.bulletSpeed = 400;
 
         this.bulletCD = 0.5;
         this.bulletCDCounter = 0;
+
+        this.highScore = 0;
+
+        let storedHS = localStorage.getItem('highScore');
+        if (storedHS) {
+            this.highScore = storedHS;
+        } else {
+            localStorage.setItem('highScore', 0);
+        }
 
         this.score = 0;
         this.lives = 3;
@@ -21,39 +30,17 @@ class SpaceEvaders extends Phaser.Scene {
         this.movementIncrement = 25;
     }
 
-    preload() {
-        this.load.setPath("./assets/Kenney_space-shooter-remastered");
-        
-        this.load.image("bg", "/Backgrounds/darkPurple.png");
-
-        this.load.image("pSatellite", "/PNG/Enemies/enemyBlack1.png");
-        this.load.image("pBullet", "/PNG/Lasers/laserBlue05.png");
-        this.load.image("eBullet", "/PNG/Lasers/laserGreen05.png");
-
-        this.load.image("sFlare", "/PNG/Lasers/laserRed05.png");
-        this.load.image("meteor", "/PNG/Meteors/meteorBrown_big3.png");
-       
-        this.load.setPath("./assets/Kenney_space-shooter-extension/PNG");
-
-        this.load.image("eSatellite", "/Sprites/Ships/spaceShips_004.png");
-        this.load.image("fuelTank", "/Sprites/Rockets/spaceRockets_004.png");
-
-        this.load.setPath("./assets");
-        
-        this.load.bitmapFont('CossetteTexte', "CossetteTexte-Bitmap_0.png", "CossetteTexte-Bitmap.fnt");
-
-        this.load.audio("explosion_sound", "explosion.wav");
-        this.load.audio("laser_sound", "laser.wav");
-        this.load.audio("win_sound", "win.wav");
-        this.load.audio("lose_sound", "lose.wav");
-    }
-
     create() {
         let obj = this.obj;
 
         this.left = this.input.keyboard.addKey("A");
         this.right = this.input.keyboard.addKey("D");
+        this.up = this.input.keyboard.addKey("W");
+        this.down = this.input.keyboard.addKey("S");
         this.space = this.input.keyboard.addKey("SPACE");
+        this.cursors = this.input.keyboard.createCursorKeys();
+
+        console.log(this.cursors);
 
         obj.sprite.bg = this.add.sprite(game.config.width/2, game.config.height/2, "bg");
         obj.sprite.bg.setScale(4);
@@ -64,14 +51,21 @@ class SpaceEvaders extends Phaser.Scene {
 
         obj.text.health = this.add.bitmapText(0,510, "CossetteTexte", "LIVES: 3");
         obj.text.score = this.add.bitmapText(0,540, "CossetteTexte", "SCORE: 0");
+        obj.text.highScore = this.add.bitmapText(0, 0, "CossetteTexte", "HIGH SCORE: " + this.highScore)
         obj.text.stagesclear = this.add.bitmapText(0,570, "CossetteTexte", "STAGES CLEAR: 0");
         obj.text.endText = this.add.bitmapText(325,250, "CossetteTexte", "STAGE CLEAR");
         obj.text.endText.visible = false;
 
-        this.explosion = this.sound.add("explosion_sound", {volume: 0.75, loop: false});
-        this.laser = this.sound.add("laser_sound", {volume: 0.5, loop: false});
-        this.winSound = this.sound.add("win_sound", {volume: 0.75, loop: false});
-        this.loseSound = this.sound.add("lose_sound", {volume: 0.75, loop: false});
+        obj.sfx.explosion = this.sound.add("explosion_sound", {volume: 0.75, loop: false});
+        obj.sfx.laser = this.sound.add("laser_sound", {volume: 0.5, loop: false});
+        obj.sfx.winSound = this.sound.add("win_sound", {volume: 0.75, loop: false});
+        obj.sfx.loseSound = this.sound.add("lose_sound", {volume: 0.75, loop: false});
+
+        obj.fx.cmfltr = this.cameras.main.filters.internal.addColorMatrix();
+        obj.fx.colMat = obj.fx.cmfltr.colorMatrix;
+        obj.fx.colMat.technicolor()
+
+        obj.fx.barrel = this.cameras.main.filters.external.addBarrel(1.1);
     }
 
     init_game() {
@@ -84,9 +78,13 @@ class SpaceEvaders extends Phaser.Scene {
         this.paths = [];
         this.curves = [];
 
-        obj.sprite.pSatellite = new Player(this, this.game.config.width/2, game.config.height - 40, "pSatellite", null, this.left, this.right, this.playerSpeed);
+        obj.sprite.pSatellite = new Player(this, this.game.config.width/2, game.config.height - 40, "pSatellite", null, 
+            this.left, this.right, this.up, this.down, this.playerSpeed,
+            this.cursors
+        );
         obj.sprite.pSatellite.setScale(0.5);
         obj.sprite.pSatellite.rotation = Math.PI;
+        obj.sprite.pSatellite.enableFilters();
 
         obj.sprite.bulletGroup = this.add.group({
             active: true,
@@ -185,6 +183,20 @@ class SpaceEvaders extends Phaser.Scene {
             }
         }
 
+        this.physics.add.overlap(obj.sprite.pSatellite, obj.sprite.enemies, (obj1, obj2) => {
+            this.lives -= 1;
+            this.updateLives();
+
+            this.register_collision(obj2);
+        });
+
+        this.physics.add.overlap(obj.sprite.bulletGroup, obj.sprite.enemies, (obj1, obj2) => {
+            if (obj1.active == true) {
+                obj1.changeStatus(false);
+                this.register_collision(obj2);
+            }
+        });
+
         this.restarting = false;
 
 
@@ -239,7 +251,7 @@ class SpaceEvaders extends Phaser.Scene {
             this.stagesclear += 1;
             this.lives += 1;
             this.updateLives();
-            this.winSound.play();
+            obj.sfx.winSound.play();
 
             
             obj.text.stagesclear.setText("STAGES CLEAR: " + this.stagesclear);
@@ -254,7 +266,7 @@ class SpaceEvaders extends Phaser.Scene {
             this.lives = 3;
             this.score = 0;
             this.stagesclear = 0;
-            this.loseSound.play();
+            obj.sfx.loseSound.play();
             
             obj.text.stagesclear.setText("STAGES CLEAR: " + this.stagesclear);
             this.updateScore();
@@ -275,18 +287,9 @@ class SpaceEvaders extends Phaser.Scene {
                     bullet.changeStatus(true);
                     bullet.x = obj.sprite.pSatellite.x;
                     bullet.y = obj.sprite.pSatellite.y - (obj.sprite.pSatellite.displayHeight/2);
-                    this.laser.play();
-                }
-            }
-        }
-
-        for (let bullet of obj.sprite.bulletGroup.getChildren()) {
-            if (bullet.active) {
-                for (let sprite of obj.sprite.enemies) {
-                    if (sprite != null && this.collides(sprite, bullet)) {
-                        bullet.changeStatus(false);
-                        this.register_collision(sprite);
-                    }
+                    bullet.setVel(obj.sprite.pSatellite.angle + 90);
+                    bullet.angle = obj.sprite.pSatellite.angle;
+                    obj.sfx.laser.play();
                 }
             }
         }
@@ -302,9 +305,19 @@ class SpaceEvaders extends Phaser.Scene {
                 let index = obj.sprite.enemies.indexOf(sprite);
 
                 if (sprite.type == 3 && sprite.attackCooldown <= 0) {
-                    obj.sprite.enemyBullets.push(new Bullet(
-                        this, sprite.x, sprite.y + sprite.displayHeight/2, "eBullet", null, true, 200)
-                    );
+                    let eBullet = new Bullet(this, sprite.x, sprite.y + sprite.displayHeight/2, "eBullet", null, true, 200, sprite.angle)
+                    obj.sprite.enemyBullets.push(eBullet);
+
+                    this.physics.add.overlap(obj.sprite.pSatellite, eBullet, (obj1, obj2) => {
+                        let index = obj.sprite.enemyBullets.indexOf(obj2)
+                        obj2.destroy();
+                        obj.sprite.enemyBullets[index].y = 1000;
+
+                        this.lives -= 1;
+                        obj.sfx.explosion.play()
+                        this.updateLives();
+                    });
+
                     sprite.attackCooldown = Math.random() * (4) + 3;
                 } else if (sprite.type == 1) {
                     if (sprite.y >= this.game.config.height - 2 * obj.sprite.pSatellite.displayHeight) {
@@ -357,25 +370,16 @@ class SpaceEvaders extends Phaser.Scene {
                     
                     bullet.changeStatus(false);
                 }
-                if (bullet.y >= this.game.config.height - 2 * obj.sprite.pSatellite.displayHeight) {
-                    if (this.collides(bullet, this.obj.sprite.pSatellite)) {
-                        let index = obj.sprite.enemyBullets.indexOf(bullet)
-                        bullet.destroy();
-                        obj.sprite.enemyBullets[index].y = 1000;
-
-                        this.lives -= 1;
-                        this.explosion.play()
-                        this.updateLives();
-                    }
-                }
             }
         }
 
     }
 
     register_collision(sprite) {
+
+        let obj = this.obj
         let spriteType = sprite.type;
-        let enemies = this.obj.sprite.enemies;
+        let enemies = obj.sprite.enemies;
         let index = enemies.indexOf(sprite);
 
         sprite.destroy();
@@ -404,7 +408,7 @@ class SpaceEvaders extends Phaser.Scene {
         }
 
         this.updateScore()
-        this.explosion.play();
+        obj.sfx.explosion.play();
         this.remainingEnemies -= 1;
     }
 
@@ -415,8 +419,15 @@ class SpaceEvaders extends Phaser.Scene {
     }
 
     updateScore() {
-        let obj = this.obj
-        obj.text.score.setText("SCORE: " + this.score)
+        let obj = this.obj;
+        obj.text.score.setText("SCORE: " + this.score);
+        console.log(this.score);
+        if (this.score > this.highScore) {
+            console.log("!!!");
+            this.highScore = this.score;
+            obj.text.highScore.setText("HIGH SCORE: " + this.highScore);
+            localStorage.setItem('highScore', this.highScore);
+        }
     }
 
     updateLives() {

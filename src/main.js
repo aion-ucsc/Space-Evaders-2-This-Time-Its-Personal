@@ -12,13 +12,23 @@
 
 let config = {
     parent: 'phaser-game',
-    type: Phaser.CANVAS,
+    type: Phaser.AUTO,
     render: {
         pixelArt: true
     },
+    physics: {
+        default: 'arcade',
+        arcade: {
+            debug: false,
+            gravity: {
+                x: 0,
+                y: 0
+            }
+        }
+    },
     width: 800,
     height: 600,
-    scene: [SpaceEvaders]
+    scene: [Load, SpaceEvaders]
 }
 
 

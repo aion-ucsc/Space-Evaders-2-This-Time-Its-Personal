@@ -1,13 +1,20 @@
-class Player extends Phaser.GameObjects.Sprite {
+class Player extends Phaser.Physics.Arcade.Sprite {
     
-    constructor(scene, x, y, img, frame, lKey, rKey, speed) {
+    constructor(scene, x, y, img, frame, lKey, rKey, upKey, downKey, speed, arrowkeys) {
         super(scene, x, y, img, frame);
 
         this.left = lKey;
         this.right = rKey;
+        this.up = upKey;
+        this.down = downKey;
         this.speed = speed;
+        this.leftR = arrowkeys.left;
+        this.rightR = arrowkeys.right;
+        this.upR = arrowkeys.up;
+        this.downR = arrowkeys.down;
 
         scene.add.existing(this);
+        scene.physics.add.existing(this);
 
         return this;
     }
@@ -17,15 +24,50 @@ class Player extends Phaser.GameObjects.Sprite {
 
         if (this.left.isDown) {
             if (this.x > (this.displayWidth)) {
-                this.x -= this.speed * dt
+                this.x -= this.speed * dt;
             }
         }
 
         if (this.right.isDown) {
             if (this.x < (game.config.width - (this.displayWidth))) {
-                this.x += this.speed * dt
+                this.x += this.speed * dt;
             }
         }
+
+        if (this.up.isDown) {
+            if (this.y > (this.displayHeight)) {
+                this.y -= this.speed * dt;
+            }
+        }
+
+        if (this.down.isDown) {
+            if (this.y < (game.config.height - (this.displayHeight))) {
+                this.y += this.speed * dt;
+            }
+        }
+
+        if (this.upR.isDown) {
+            if (this.leftR.isDown) {
+                this.rotation = Phaser.Math.Linear(this.rotation, 3 * Math.PI/4, dt * 5);
+            } else if (this.rightR.isDown) {
+                this.rotation = Phaser.Math.Linear(this.rotation, -3 * Math.PI/4, dt * 5);
+            } else {
+                this.rotation = Phaser.Math.Linear(this.rotation, Math.PI, dt * 5);
+            }
+        } else if (this.downR.isDown) {
+            if (this.leftR.isDown) {
+                this.rotation = Phaser.Math.Linear(this.rotation, 1 * Math.PI/4, dt * 5);
+            } else if (this.rightR.isDown) {
+                this.rotation = Phaser.Math.Linear(this.rotation, -1 * Math.PI/4, dt * 5);
+            } else {
+                this.rotation = Phaser.Math.Linear(this.rotation, 0, dt * 5);
+            }
+        } else if (this.leftR.isDown) {
+            this.rotation = Phaser.Math.Linear(this.rotation, 2 * Math.PI/4, dt * 5);
+        } else if (this.rightR.isDown) {
+            this.rotation = Phaser.Math.Linear(this.rotation, -2 * Math.PI/4, dt * 5);
+        }
+
     }
 
 }
