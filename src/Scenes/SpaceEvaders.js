@@ -183,15 +183,40 @@ class SpaceEvaders extends Phaser.Scene {
             }
         }
 
+        obj.vfx.destroyedVFX = this.add.particles(0, 0, "kenny-particles", {
+                frame: ["star_06.png","star_07.png"],
+                color: [0x3268a8, 0x241691, 0x8a10b3],
+                colorEase: "quad.out",
+                x: {min: -5, max: 5},
+                y: {min: -5, max: 5},
+                speedX: {min: -100, max: 100},
+                speedY: {min: -100, max: 100},
+                gravityX: 0,
+                gravityY: 0,
+                scale: {start: 0.05, end: 0.01},
+                alpha: {start: 0.2, end: 1},
+                duration: 50,
+                lifespan: 500,
+                frequency: 10,
+                quantity: 3,
+                blendMode: "ADD"
+        });
+
+        obj.vfx.destroyedVFX.stop();
+
         this.physics.add.overlap(obj.sprite.pSatellite, obj.sprite.enemies, (obj1, obj2) => {
             this.lives -= 1;
             this.updateLives();
+
+            obj.vfx.destroyedVFX.emitParticleAt(obj2.x, obj2.y, 50);
 
             this.register_collision(obj2);
         });
 
         this.physics.add.overlap(obj.sprite.bulletGroup, obj.sprite.enemies, (obj1, obj2) => {
             if (obj1.active == true) {
+                obj.vfx.destroyedVFX.emitParticleAt(obj1.x, obj1.y, 50);
+
                 obj1.changeStatus(false);
                 this.register_collision(obj2);
             }
@@ -316,6 +341,7 @@ class SpaceEvaders extends Phaser.Scene {
 
                     this.physics.add.overlap(obj.sprite.pSatellite, eBullet, (obj1, obj2) => {
                         let index = obj.sprite.enemyBullets.indexOf(obj2)
+                        obj.vfx.destroyedVFX.emitParticleAt(obj2.x, obj2.y, 50);
                         obj2.destroy();
                         obj.sprite.enemyBullets[index].y = 1000;
 
