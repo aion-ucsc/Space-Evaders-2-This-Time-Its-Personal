@@ -1,9 +1,9 @@
 // Aidan Ion
-// Created: 5/4/26
+// Created: 6/26
 //
-// Space Evaders
+// Space Evaders 2 : this time its personal
 //
-// Gallery shooter game
+// Final game
 
 // Art assets from Kenny Assets:
 // https://kenney.nl/assets/
@@ -28,7 +28,7 @@ let config = {
     },
     width: 800,
     height: 600,
-    scene: [Load, SpaceEvaders]
+    scene: [Load, Intro, SpaceEvaders, Credits]
 }
 
 

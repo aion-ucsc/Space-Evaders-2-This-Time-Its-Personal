@@ -34,6 +34,6 @@ class Load extends Phaser.Scene {
     }
 
     create() {
-        this.scene.start("spaceEvaders");
+        this.scene.start("intro");
     }
 }

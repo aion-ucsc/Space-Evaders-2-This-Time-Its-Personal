@@ -239,6 +239,14 @@ class SpaceEvaders extends Phaser.Scene {
             if (this.restartTimeOut < 2) {
                 this.restartTimeOut += dt;
             } else {
+                if (this.lives <= 0) {
+                    this.scene.pause();
+                    this.scene.launch("credits");
+
+                    this.lives = 3;
+                    this.updateLives(); 
+                }
+
                 obj.text.endText.visible = false;
                 this.init_game();
                 this.restartTimeOut = 0;
@@ -263,14 +271,12 @@ class SpaceEvaders extends Phaser.Scene {
             this.restarting = true;
             this.destroy_game();
 
-            this.lives = 3;
             this.score = 0;
             this.stagesclear = 0;
             obj.sfx.loseSound.play();
             
             obj.text.stagesclear.setText("STAGES CLEAR: " + this.stagesclear);
             this.updateScore();
-            this.updateLives(); 
             obj.text.endText.setText("GAME OVER!");
             obj.text.endText.visible = true;
             
