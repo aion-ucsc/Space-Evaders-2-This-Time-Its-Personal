@@ -22,6 +22,10 @@ class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.active = status;
     }
 
+    followPath(nodes) {
+    
+    }
+
     onDestroy(enemies) {
 
     }

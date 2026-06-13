@@ -76,7 +76,7 @@ class SpaceEvaders extends Phaser.Scene {
         this.paths = [];
         this.curves = [];
 
-        obj.sprite.pSatellite = new Player(this, this.game.config.width/2, game.config.height - 40, "pSatellite", null, 
+        obj.sprite.pSatellite = new Player(this, this.game.config.width/2, game.config.height/2, "pSatellite", null, 
             this.left, this.right, this.up, this.down, this.playerSpeed,
             this.cursors
         );
@@ -100,89 +100,99 @@ class SpaceEvaders extends Phaser.Scene {
         });
         obj.sprite.bulletGroup.propertyValueSet("speed", this.bulletSpeed);
 
-        for (let i = 0; i < 6; i++) {
-            for (let j = 0; j < 7; j++) {
-                let enemyType = null;
-                let enemySprite = null;
-                let rand = Math.ceil(Math.random() * 100);
+        for (let i = 0; i < 40; i++) {
+            let enemyType = null;
+            let enemySprite = null;
+            let rand = Math.ceil(Math.random() * 100);
 
-                let x = (j+2) * this.game.config.width/10;
-                let y = (i+1) * this.game.config.height/10;
+            if (rand < 40) { 
+                enemyType = 2;
+                enemySprite = "meteor";
 
-                console.log(rand);
-
-                if (rand < 50) { 
-                    enemyType = 2;
-                    enemySprite = "meteor";
-                    obj.sprite.enemies[j + i * 7] = new Meteor(this, x, y, enemySprite, null, enemyType, 100);
-                } else if (rand < 75) {
-                    enemyType = 3;
-                    enemySprite = "eSatellite";
-                    obj.sprite.enemies[j + i * 7] = new LineSatellite(this, x, y, enemySprite, null, enemyType, 100);
-                } else if (rand < 90) {
-                    enemyType = 1;
-                    enemySprite = "sFlare";
-                    obj.sprite.enemies[j + i * 7] = new SolarFlare(this, x, y, enemySprite, null, enemyType, 100);
-                } else if (rand <= 100) {
-                    enemyType = 4;
-                    enemySprite = "fuelTank"
-                    obj.sprite.enemies[j + i * 7] = new FuelTank(this, x, y, enemySprite, null, enemyType, 100);
+                let gambling_machine_9000 = () => {
+                    let x2 = Math.random() * 800;
+                    let y2 = Math.random() * 600;
+                    
+                    if ((x2 < 350 || x2 > 450) && (y2 < 250 || y2 > 350)) {
+                        return new Pointtt(x2, y2);
+                    } else {
+                        return gambling_machine_9000();
+                    }
                 }
 
-                this.remainingEnemies += 1;
+                let point2 = gambling_machine_9000();
+
+                obj.sprite.enemies[i] = new Meteor(this, point2.x, point2.y, enemySprite, null, enemyType, 100);
+            } else if (rand < 70) {
+                enemyType = 3;
+                enemySprite = "eSatellite";
+
+                let rand3 = Math.ceil(Math.random() * 4);
+
+                let x3 = 0;
+                let y3 = 0;
+
+                if (rand3 == 1) {
+                    x3 = 0;
+                    y3 = Math.random() * 600;
+                } else if (rand3 == 2) {
+                    x3 = 800;
+                    y3 = Math.random() * 600;
+                } else if (rand3 == 3) {
+                    x3 = Math.random() * 800;
+                    y3 = 0;
+                } else if (rand3 == 4) {
+                    x3 = Math.random() * 800;
+                    y3 = 600;
+                }
+
+                obj.sprite.enemies[i] = new LineSatellite(this, x3, y3, enemySprite, null, enemyType, 100);
+                obj.sprite.enemies[i].followPath([new Pointtt(x3, y3)]);
+
+            } else if (rand < 90) {
+                enemyType = 1;
+                enemySprite = "sFlare";
+
+                let x1 = Math.random() * 800;
+                let y1 = 0;
+
+                obj.sprite.enemies[i] = new SolarFlare(this, x1, y1, enemySprite, null, enemyType, 100);
+                obj.sprite.enemies[i].followPath([new Pointtt(x1, y1)]);
+            } else if (rand <= 100) {
+                enemyType = 4;
+                enemySprite = "fuelTank"
+
+                let rand4 = Math.ceil(Math.random() * 4);
+
+                let x4 = 0;
+                let y4 = 0;
+
+                if (rand4 == 1) {
+                    x4 = 0;
+                    y4 = Math.random() * 600;
+                } else if (rand4 == 2) {
+                    x4 = 800;
+                    y4 = Math.random() * 600;
+                } else if (rand4 == 3) {
+                    x4 = Math.random() * 800;
+                    y4 = 0;
+                } else if (rand4 == 4) {
+                    x4 = Math.random() * 800;
+                    y4 = 600;
+                }
+
+                obj.sprite.enemies[i] = new FuelTank(this, x4, y4, enemySprite, null, enemyType, 100);
+                obj.sprite.enemies[i].followPath([new Pointtt(x4, y4)]);
+            }
+
+            this.remainingEnemies += 1;
                 
-                if (enemyType == 1) {
-                    obj.sprite.enemies[j + i * 7].setScale(1.5);
-                } else if (enemyType == 4) {
-                    obj.sprite.enemies[j + i * 7].setScale(0.15);
-                    obj.sprite.enemies[j + i * 7].rotation = Math.PI;
-                } else {
-                    obj.sprite.enemies[j + i * 7].setScale(0.5);
-                }
-
-                //I'm leaving this here as a small little reminder of my suffering with pathing
-
-                /*if (enemyType != 1) {
-                    this.paths[j + i * 7] = [];
-
-                    this.paths[j + i *7].push(
-                        x, y,
-                    )
-                    for (let i2 = i; i2 < 6; i2++) {
-                        if (i2 % 2 == 0) {
-                            this.paths[j + i * 7].push(
-                                x + this.game.config.width * 0.4, y + i2 * this.game.config.height/10,
-                                this.game.config.width + x, y + (i2+1) * this.game.config.height/10,
-                            )
-                        } else {
-                            this.paths[j + i * 7].push(
-                                x + this.game.config.width * -0.4, y + i2 * this.game.config.height/10,
-                                this.game.config.width - x, y + (i2+1) * this.game.config.height/10,
-                            )
-                        }
-                    }
-
-                    this.curves[j + i * 7] = new Phaser.Curves.Spline(this.paths[j + i * 7]);
-
-                    console.log(this.curves[j + i * 7])
-
-                    let initPoint = this.curves[j + i * 7].points[0];
-                    if (this.curves[j + i * 7].points[0]) {
-                        obj.sprite.enemies[j + i * 7].x = initPoint.x;
-                        obj.sprite.enemies[j + i * 7].y = initPoint.y;
-                        obj.sprite.enemies[j + i * 7].startFollow({
-                            from: 0,
-                            to: 1,
-                            delay: 0,
-                            duration : this.curves[j + i * 7] / 100 * 1000,
-                            ease: 'Sine.easeInOut',
-                            repeat : -1,
-                            yoyo : false,
-                            rotateToPath: false,
-                        });
-                    }
-                }*/
-
+            if (enemyType == 1) {
+                obj.sprite.enemies[i].setScale(1.5);
+            } else if (enemyType == 4) {
+                obj.sprite.enemies[i].setScale(0.15);
+            } else {
+                obj.sprite.enemies[i].setScale(0.5);
             }
         }
 
@@ -280,6 +290,20 @@ class SpaceEvaders extends Phaser.Scene {
                 this.restartTimeOut = 0;
             }
             return;
+        } else if (this.lives <= 0) {
+            this.restarting = true;
+            this.destroy_game();
+
+            this.score = 0;
+            this.stagesclear = 0;
+            obj.sfx.loseSound.play();
+            
+            obj.text.stagesclear.setText("STAGES CLEAR: " + this.stagesclear);
+            this.updateScore();
+            obj.text.endText.setText("GAME OVER!");
+            obj.text.endText.visible = true;
+            
+            return;
         } else if (this.remainingEnemies == 0) {
             this.restarting = true;
             this.destroy_game();
@@ -292,20 +316,6 @@ class SpaceEvaders extends Phaser.Scene {
             
             obj.text.stagesclear.setText("STAGES CLEAR: " + this.stagesclear);
             obj.text.endText.setText("STAGE CLEAR!");
-            obj.text.endText.visible = true;
-            
-            return;
-        } else if (this.lives <= 0) {
-            this.restarting = true;
-            this.destroy_game();
-
-            this.score = 0;
-            this.stagesclear = 0;
-            obj.sfx.loseSound.play();
-            
-            obj.text.stagesclear.setText("STAGES CLEAR: " + this.stagesclear);
-            this.updateScore();
-            obj.text.endText.setText("GAME OVER!");
             obj.text.endText.visible = true;
             
             return;
@@ -378,23 +388,6 @@ class SpaceEvaders extends Phaser.Scene {
 
             }
         }
-
-        if (directionCheck) {
-            for (let sprite of obj.sprite.enemies) {
-                if (sprite != null && sprite.type != 1) {
-                    sprite.y += this.game.config.height/10;
-                    if (sprite.y >= this.game.config.height * 9/10) {
-                        this.lives = -999;
-                    }
-                }
-            }
-        } else {
-            for (let sprite of obj.sprite.enemies) {
-                if (sprite != null && sprite.type != 1) {
-                    sprite.x += this.movementIncrement * dt * this.direction;
-                }
-            }
-        }
         
         obj.sprite.enemyBullets = obj.sprite.enemyBullets.filter((bullet) => bullet.y < (this.game.config.height + bullet.displayHeight/2));
 
@@ -426,18 +419,6 @@ class SpaceEvaders extends Phaser.Scene {
         } else if (spriteType == 4) {
             this.score += 400;
             sprite.onDestroy(enemies);
-            /*if (index % 7 != 0 && enemies[index-1] != null && enemies[index-1].type != 1) {
-                this.register_collision(enemies[index-1]);
-            }
-            if (index > 6 && enemies[index-7] != null && enemies[index-7].type != 1) {
-                this.register_collision(enemies[index-7]);
-            }
-            if (index % 7 != 6 && enemies[index+1] != null && enemies[index+1].type != 1) {
-                this.register_collision(enemies[index+1]);
-            }
-            if (index < 35 && enemies[index+7] != null && enemies[index+7 ].type != 1) {
-                this.register_collision(enemies[index+7]);
-            }*/
         }
 
         this.updateScore();
@@ -458,9 +439,7 @@ class SpaceEvaders extends Phaser.Scene {
     updateScore() {
         let obj = this.obj;
         obj.text.score.setText("SCORE: " + this.score);
-        console.log(this.score);
         if (this.score > this.highScore) {
-            console.log("!!!");
             this.highScore = this.score;
             obj.text.highScore.setText("HIGH SCORE: " + this.highScore);
             localStorage.setItem('highScore', this.highScore);
