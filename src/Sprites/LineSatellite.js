@@ -21,7 +21,9 @@ class LineSatellite extends Enemy {
 
     followPath(nodes) {
 
-        //
+        //follows paths depending on random value assignment of x and y
+        //sets rotation depending on which side of the screen satellite is coming from
+        //creates a tween to move it to opposite end of the screen, randomizing the other coordinate value, removing itself when done
 
         if (nodes[0].x == 0) {
             this.rotation = Math.PI/2;

@@ -1,8 +1,10 @@
 class Player extends Phaser.Physics.Arcade.Sprite {
     
     constructor(scene, x, y, img, frame, lKey, rKey, upKey, downKey, speed, arrowkeys) {
+        //sends info up to superclass
         super(scene, x, y, img, frame);
 
+        //sets up keys and speed
         this.left = lKey;
         this.right = rKey;
         this.up = upKey;
@@ -13,6 +15,7 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         this.upR = arrowkeys.up;
         this.downR = arrowkeys.down;
 
+        //enables player in the scene and physics
         scene.add.existing(this);
         scene.physics.add.existing(this);
 
@@ -21,6 +24,8 @@ class Player extends Phaser.Physics.Arcade.Sprite {
 
     update(t, delta) {
         let dt = delta / 1000;
+
+        //movement variables - moves the player based on WASD controls
 
         if (this.left.isDown) {
             if (this.x > (this.displayWidth)) {
@@ -46,6 +51,8 @@ class Player extends Phaser.Physics.Arcade.Sprite {
             }
         }
 
+
+        //Rotates the player based on arrow keys using linear interpolation
         if (this.upR.isDown) {
             if (this.leftR.isDown) {
                 this.rotation = Phaser.Math.Linear(this.rotation, 3 * Math.PI/4, dt * 5);
